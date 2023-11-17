@@ -133,14 +133,44 @@ class DiaryEntry(object):
 
     def get_annotations(self):
         annotations = []
-        try:
-            for i in self.soup.find('section', id='annotations').find_all('div', class_='media-body'):
-                annotations.append(i.text)
-        except:
-            pass
-        else: 
-            annotations.append('na')
+        # try:
+        #     for i in self.soup.find('section', id='annotations').find_all('div', class_='media-body'):
+        #         annotations.append(i.text)
+        # except:
+        #     pass
+        # else: 
+        #     annotations.append('na')
         
+        for i in self.soup.find('section', id='annotations').find_all('div', class_='media-body'):
+            # annotation = []
+            datetime = []
+            username = []
+            usercomment = []
+
+            sep0 = '\non'
+            annot = i.text
+            user = annot.split(sep0, 1)[0]
+            user_fixed = user.replace("\n", "").replace("\t", "")
+            username.append(user_fixed)
+
+            sep1 = 'Link\n\n\n\n'
+            comm = annot.split(sep1, 1)[1]
+            comm_fixed = comm.replace("\n", " ")
+            usercomment.append(comm_fixed)
+
+            for post in i.find_all('time'):
+                datetime.append(post['datetime'])
+                
+            # annotation.append(datetime)
+            # annotation.append(username)
+            # annotation.append(usercomment)
+            # annotations.append(annotation)
+
+            annotation = [
+                {'datetime': datet, 'username': usern, 'usercomment': userc}
+                for datet, usern, userc in zip(datetime, username, usercomment)
+            ]
+            annotations.append(annotation)
         return annotations
        
 # this is what runs if you run the file as a one-off event - $ python3 scrape-as-class.py
