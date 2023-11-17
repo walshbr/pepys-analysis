@@ -17,7 +17,19 @@ class Diary(object):
         # classes may contain functions we define ourselves, like the setup_driver function
         self.driver = self.setup_driver()
         self.num_entries = 10
+        # if there is no sp_diary.json, start at one
         self.entries = [DiaryEntry(self.driver)]
+        # if there is an sp_diary.json, look at it and find out the last you were on
+        # self.adjust_driver_to_last_entry()
+        # remaining_entries = True
+        # while remaining_entries:
+            # time.sleep(1)
+            # self.entries.append(DiaryEntry(self.driver))
+            # next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
+            # if remaining_entries:
+                # next_entry.click()
+            # else:
+                # break
         for entry in range(self.num_entries)[1:]:
             print(entry)
             time.sleep(1)
