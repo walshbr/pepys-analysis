@@ -1,11 +1,10 @@
-import requests
 import lxml
 from bs4 import BeautifulSoup
-import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 import time
 import secret
 
@@ -16,7 +15,7 @@ class Diary(object):
         # all the attributes we want the class to have
         # classes may contain functions we define ourselves, like the setup_driver function
         self.driver = self.setup_driver()
-        self.num_entries = 3
+        self.num_entries = 10
         self.entries = [DiaryEntry(self.driver)]
         for entry in range(self.num_entries)[1:]:
             print(entry)
@@ -25,7 +24,6 @@ class Diary(object):
             next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
             next_entry.click()
         self.driver.quit()
-
 
 
     def setup_driver(self):
@@ -41,6 +39,7 @@ class Diary(object):
 class DiaryEntry(object):
     # now create the blueprint for our text object
     def __init__(self,parent_driver):
+        self.driver = parent_driver
         # grab the current url
         self.url = parent_driver.current_url
         # grab the year
@@ -60,10 +59,19 @@ class DiaryEntry(object):
 
     def get_text(self):
         entry_text = []
-        stop_at = self.soup.find('aside', class_='footnotes')
-        for i in stop_at.find_all_previous('p'):
-            entry_text.insert(0,i.text)
-        entry_text.remove('Daily entries from the 17th century London diary')
+        
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, '.footnotes')
+            stop_at = self.soup.find('aside', class_='footnotes')
+            for i in stop_at.find_all_previous('p'):
+                entry_text.insert(0,i.text)
+        except NoSuchElementException:
+            for i in self.soup.find('div', class_='manuscript').find_all('p'):
+                entry_text.append(i.text)
+
+        extra = 'Daily entries from the 17th century London diary'
+        if extra in entry_text: entry_text.remove(extra)
+        
         return entry_text
         
     def get_endnotes(self):
