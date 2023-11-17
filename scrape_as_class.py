@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
 import time
+import secret
 
 class Diary(object):
     # rather than enter the data bit by bit, we create a constructor that takes in the data at one time and spins it into the format we want
@@ -29,7 +30,7 @@ class Diary(object):
 
     def setup_driver(self):
         """Sets up the crhome driver and returns it for later use"""
-        MY_PATH = "/Users/bmw9t/projects/beth-scraping/chromedriver-mac-x64/chromedriver"
+        MY_PATH = secret.path()
         service = Service(executable_path=MY_PATH)
         options = webdriver.ChromeOptions()
         driver = webdriver.Chrome(service=service, options=options)
