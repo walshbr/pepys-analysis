@@ -7,6 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 import time
 import secret
+import json
 
 class Diary(object):
     # rather than enter the data bit by bit, we create a constructor that takes in the data at one time and spins it into the format we want
@@ -24,6 +25,27 @@ class Diary(object):
             next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
             next_entry.click()
         self.driver.quit()
+        self.output_to_json()
+
+    def output_to_json(self):
+
+        # create dictionary
+        diary_dict = []
+        for i in self.entries:
+            this_dict = {}
+            this_dict['year'] = i.year
+            this_dict['month'] = i.month
+            this_dict['date'] =  i.date
+            this_dict['entry_date'] = i.entry_date
+            this_dict['entry_text'] = i.entry_text
+            this_dict['endnotes'] = i.endnotes
+            this_dict['footnotes'] = i.footnotes
+            this_dict['annotations'] = i.annotations
+            diary_dict.append(this_dict)
+
+        
+        with open('sp_diary.json', 'w') as outfile:
+            json.dump(diary_dict, outfile)
 
 
     def setup_driver(self):
