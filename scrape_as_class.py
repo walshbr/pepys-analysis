@@ -9,6 +9,15 @@ import time
 import secret
 import json
 
+# start
+# >>> python 3
+# >>> import scrape_as_class
+
+# reload
+# >>> import importlib
+# >>> importlib.reload(scrape_as_class)
+# >>> diary = scrape_as_class.Diary()
+
 class Diary(object):
     # rather than enter the data bit by bit, we create a constructor that takes in the data at one time and spins it into the format we want
     # all the attributes we want the class to have follow the __init__ syntax
@@ -16,27 +25,37 @@ class Diary(object):
         # all the attributes we want the class to have
         # classes may contain functions we define ourselves, like the setup_driver function
         self.driver = self.setup_driver()
-        self.num_entries = 10
+        self.num_entries = 5
         # if there is no sp_diary.json, start at one
         self.entries = [DiaryEntry(self.driver)]
         # if there is an sp_diary.json, look at it and find out the last you were on
         # self.adjust_driver_to_last_entry()
-        # remaining_entries = True
+        
+        # remaining_entries = True if self.driver.current_url != "https://www.pepysdiary.com/diary/1660/01/09/" else False
+
         # while remaining_entries:
-            # time.sleep(1)
-            # self.entries.append(DiaryEntry(self.driver))
-            # next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
-            # if remaining_entries:
-                # next_entry.click()
-            # else:
-                # break
-        for entry in range(self.num_entries)[1:]:
-            print(entry)
+        #     time.sleep(1)
+        #     self.entries.append(DiaryEntry(self.driver))
+        #     next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
+        #     next_entry.click()
+        #     # if self.driver.current_url != "https://www.pepysdiary.com/diary/1660/01/09/":
+        #     #     next_entry.click()
+        #     # else:
+        #     #     break
+        
+        
+        while self.driver.current_url != "https://www.pepysdiary.com/diary/1669/05/31/":
+        # for entry in range(self.num_entries)[0:]:
+            print(self.driver.current_url)
             time.sleep(1)
             self.entries.append(DiaryEntry(self.driver))
             next_entry = self.driver.find_element(By.CSS_SELECTOR, 'li.nextprev-next')
             next_entry.click()
-        self.driver.quit()
+        else:
+            print(self.driver.current_url)
+            time.sleep(1)
+            self.entries.append(DiaryEntry(self.driver))
+            self.driver.quit()
         self.output_to_json()
 
     def output_to_json(self):
@@ -45,6 +64,7 @@ class Diary(object):
         diary_dict = []
         for i in self.entries:
             this_dict = {}
+            this_dict['url'] = i.url
             this_dict['year'] = i.year
             this_dict['month'] = i.month
             this_dict['date'] =  i.date
@@ -84,7 +104,8 @@ class DiaryEntry(object):
         self.date = parent_driver.current_url.split('/')[6]
         # grab full entry date
         self.soup = BeautifulSoup(parent_driver.page_source, 'lxml')
-        self.entry_date = self.soup.find('div', class_='manuscript').h1.text
+        self.raw_date = self.soup.find('div', class_='manuscript').h1.text
+        self.entry_date = self.raw_date.replace("\n", "").replace("\t", "")
         # grab text
         self.entry_text = self.get_text()
         self.endnotes = self.get_endnotes()
@@ -116,7 +137,7 @@ class DiaryEntry(object):
                 endnotes.append(i.text)
         except:
             pass
-        else: endnotes.append('na')
+        else: print('end')
 
         return endnotes
     
@@ -128,7 +149,8 @@ class DiaryEntry(object):
         except:
             pass
         else: 
-            footnotes.append('na')
+            print('foot')
+            
         return footnotes
 
     def get_annotations(self):
@@ -140,37 +162,42 @@ class DiaryEntry(object):
         #     pass
         # else: 
         #     annotations.append('na')
+        try:
+            for i in self.soup.find('section', id='annotations').find_all('div', class_='media-body'):
+                # annotation = []
+                datetime = []
+                username = []
+                usercomment = []
+
+                sep0 = '\non'
+                annot = i.text
+                user = annot.split(sep0, 1)[0]
+                user_fixed = user.replace("\n", "").replace("\t", "")
+                username.append(user_fixed)
+
+                sep1 = 'Link\n\n\n\n'
+                comm = annot.split(sep1, 1)[1]
+                comm_fixed = comm.replace("\n", " ")
+                usercomment.append(comm_fixed)
+
+                for post in i.find_all('time'):
+                    datetime.append(post['datetime'])
+                    
+                # annotation.append(datetime)
+                # annotation.append(username)
+                # annotation.append(usercomment)
+                # annotations.append(annotation)
+
+                annotation = [
+                    {'datetime': datet, 'username': usern, 'usercomment': userc}
+                    for datet, usern, userc in zip(datetime, username, usercomment)
+                ]
+                annotations.append(annotation)
+        except:
+            pass
+        else: 
+            print('annot')
         
-        for i in self.soup.find('section', id='annotations').find_all('div', class_='media-body'):
-            # annotation = []
-            datetime = []
-            username = []
-            usercomment = []
-
-            sep0 = '\non'
-            annot = i.text
-            user = annot.split(sep0, 1)[0]
-            user_fixed = user.replace("\n", "").replace("\t", "")
-            username.append(user_fixed)
-
-            sep1 = 'Link\n\n\n\n'
-            comm = annot.split(sep1, 1)[1]
-            comm_fixed = comm.replace("\n", " ")
-            usercomment.append(comm_fixed)
-
-            for post in i.find_all('time'):
-                datetime.append(post['datetime'])
-                
-            # annotation.append(datetime)
-            # annotation.append(username)
-            # annotation.append(usercomment)
-            # annotations.append(annotation)
-
-            annotation = [
-                {'datetime': datet, 'username': usern, 'usercomment': userc}
-                for datet, usern, userc in zip(datetime, username, usercomment)
-            ]
-            annotations.append(annotation)
         return annotations
        
 # this is what runs if you run the file as a one-off event - $ python3 scrape-as-class.py
