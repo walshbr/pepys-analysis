@@ -9,6 +9,8 @@ import time
 import secret
 import json
 
+# TODO: Beth will try to finalize and implement 
+
 class Diary(object):
     # rather than enter the data bit by bit, we create a constructor that takes in the data at one time and spins it into the format we want
     # all the attributes we want the class to have follow the __init__ syntax
