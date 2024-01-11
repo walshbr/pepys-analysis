@@ -5,4 +5,4 @@ out_dir = 'as_txt/'
 
 for entry in diary.entries:
     with open(out_dir + entry.year + '-' + entry.month + '-' + entry.date + '.txt','w') as fout:
-        fout.write(entry.entry_text)
+        fout.write(entry.entry_text.replace('\n',' '))
